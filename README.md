@@ -10,7 +10,26 @@ RediServe is currently in the early stages of development. It is not yet ready f
 
 ## Usage
 
-Todo
+Development environment setup
+
+1. Clone the repository
+
+```bash
+git clone
+```
+
+2. Install dependencies
+
+```bash
+cargo build
+```
+
+3. Run the server
+
+```bash
+cargo run
+```
+
 
 ## Installation
 
