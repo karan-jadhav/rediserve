@@ -18,7 +18,7 @@ Todo
 
 ## API Endpoint Status
 
-- [x] Basic Redis commands API
+- [x] <s>Basic Redis commands API</s>
 - [ ] Transactions API
 - [ ] Pipelining API
 - [ ] Authentication API
