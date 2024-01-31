@@ -46,13 +46,13 @@ RediServe is licensed under the [Apache License, Version 2.0](LICENSE).
 
 ### Libraries and Tools:
 
-**axum**: For its efficient and robust web application framework capabilities in Rust.
+[**axum**](https://github.com/tokio-rs/axum): For its efficient and robust web application framework capabilities in Rust.
 
-**deadpool-redis**: For enhancing RediServe’s performance with effective Redis connection pooling.
+[**deadpool**](https://github.com/bikeshedder/deadpool): For enhancing RediServe’s performance with effective Redis connection pooling.
 
-**redis-rs**: Providing the comprehensive Rust client for Redis, integral to RediServe's functionality.
+[**redis-rs**](https://github.com/redis-rs/redis-rs): Providing the comprehensive Rust client for Redis, integral to RediServe's functionality.
 
-**tokio**: For its support in asynchronous Rust programming, enabling efficient scaling and performance.
+[**tokio**](https://github.com/tokio-rs/tokio): For its support in asynchronous Rust programming, enabling efficient scaling and performance.
 
 ### Personal Note
 
