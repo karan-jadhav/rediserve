@@ -7,4 +7,6 @@ pub enum ApiError {
     RedisError(#[from] RedisError),
     #[error("invalid token")]
     InvalidToken,
+    #[error("No Command")]
+    NoCommand,
 }

@@ -1,22 +1,18 @@
-// src/services/command_processor.rs
-
 use deadpool_redis::Connection;
 
-use crate::models::{api_types::RedisResult, ApiError};
+use crate::models::{api_types::RedisResult, ApiError, Arguement, Command};
 
-/// A service for processing commands and arguments.
 pub struct CommandService;
 
 impl CommandService {
-    /// Processes a command with its arguments.
     pub async fn process_command(
-        command: String,
-        args: Vec<&str>,
+        command: Command,
+        arguments: Vec<Arguement>,
         mut con: Connection,
     ) -> RedisResult {
-        let mut cmd = redis::cmd(&command);
+        let mut cmd = redis::cmd(command.as_ref());
 
-        for arg in args {
+        for arg in arguments {
             cmd.arg(arg);
         }
 

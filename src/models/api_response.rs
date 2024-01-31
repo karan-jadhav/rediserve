@@ -33,3 +33,13 @@ impl From<Result<RedisValue, ApiError>> for ApiResponse {
         }
     }
 }
+
+// implements From for static response from string
+impl From<&str> for ApiResponse {
+    fn from(result: &str) -> Self {
+        ApiResponse {
+            result: Some(JsonValue::String(result.to_string())),
+            error: None,
+        }
+    }
+}
