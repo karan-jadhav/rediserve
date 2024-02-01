@@ -42,6 +42,7 @@ Todo
 - [ ] Pipelining API
 - [ ] Authentication API
 - [ ] Support for Redis Cluster
+- [ ] TOML configuration file support
 
 
 ## Contributing
