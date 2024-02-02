@@ -6,4 +6,4 @@ pub mod api_types;
 pub mod incoming_data;
 
 pub use api_error::ApiError;
-pub use incoming_data::{Arguement, Command};
+pub use incoming_data::{Argument, Command};

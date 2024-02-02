@@ -21,39 +21,39 @@ impl AsRef<str> for Command {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Arguement(pub JsonValue);
+pub struct Argument(pub JsonValue);
 
-impl From<&JsonValue> for Arguement {
+impl From<&JsonValue> for Argument {
     fn from(arg: &JsonValue) -> Self {
         match arg {
-            JsonValue::String(string) => Arguement(JsonValue::String(string.to_string())),
+            JsonValue::String(string) => Argument(JsonValue::String(string.to_string())),
             JsonValue::Number(number) => {
                 // if float then convert to string else NumberArg
                 if let Some(int) = number.as_i64() {
-                    Arguement(JsonValue::Number(int.into()))
+                    Argument(JsonValue::Number(int.into()))
                 } else {
-                    Arguement(JsonValue::String(number.to_string()))
+                    Argument(JsonValue::String(number.to_string()))
                 }
             }
-            JsonValue::Bool(boolean) => Arguement(JsonValue::Bool(*boolean)),
-            _ => Arguement(JsonValue::Null),
+            JsonValue::Bool(boolean) => Argument(JsonValue::Bool(*boolean)),
+            _ => Argument(JsonValue::Null),
         }
     }
 }
-impl From<&String> for Arguement {
+impl From<&String> for Argument {
     fn from(arg: &String) -> Self {
         // check for types
         if let Ok(int) = arg.parse::<i64>() {
-            Arguement(JsonValue::Number(int.into()))
+            Argument(JsonValue::Number(int.into()))
         } else if let Ok(boolean) = arg.parse::<bool>() {
-            Arguement(JsonValue::Bool(boolean))
+            Argument(JsonValue::Bool(boolean))
         } else {
-            Arguement(JsonValue::String(arg.to_string()))
+            Argument(JsonValue::String(arg.to_string()))
         }
     }
 }
 
-impl ToRedisArgs for Arguement {
+impl ToRedisArgs for Argument {
     fn write_redis_args<W>(&self, out: &mut W)
     where
         W: ?Sized + redis::RedisWrite,
