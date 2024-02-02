@@ -1,6 +1,6 @@
 use deadpool_redis::Connection;
 
-use crate::models::{api_types::RedisResult, ApiError, Argument, Command};
+use crate::models::{api_types::RedisResponse, ApiError, Argument, Command};
 
 pub struct CommandService;
 
@@ -9,14 +9,14 @@ impl CommandService {
         command: Command,
         arguments: Vec<Argument>,
         mut con: Connection,
-    ) -> RedisResult {
+    ) -> RedisResponse {
         let mut cmd = redis::cmd(command.as_ref());
 
         for arg in arguments {
             cmd.arg(arg);
         }
 
-        let result: RedisResult = cmd
+        let result: RedisResponse = cmd
             .query_async(&mut con)
             .await
             .map_err(ApiError::RedisError);

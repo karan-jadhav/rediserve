@@ -1,7 +1,7 @@
 use axum::{extract::Extension, routing::get};
 use axum::{Json, Router};
 use rediserve::models::api_response::ApiResponse;
-use rediserve::models::api_types::{JsonResponse, RedisResult};
+use rediserve::models::api_types::{JsonResponse, RedisResponse};
 use rediserve::models::ApiError;
 use rediserve::routes::redis_routes::redis_routes;
 use rediserve::{config::AppConfig, state::AppState};
@@ -47,7 +47,7 @@ async fn set_redis_key(Extension(app_state): Extension<Arc<AppState>>) -> JsonRe
 
     let mut con = app_state.redis_pool.get().await.unwrap();
 
-    let result: RedisResult = redis::cmd("get")
+    let result: RedisResponse = redis::cmd("get")
         // .arg("koo")
         // .arg("dar")
         .query_async(&mut con)
