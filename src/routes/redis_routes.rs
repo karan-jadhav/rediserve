@@ -1,7 +1,7 @@
 use crate::{
     models::{
         incoming_data::{ApiInput, ApiInputValue},
-        ApiError, Arguement, Command,
+        ApiError, Argument, Command,
     },
     services::CommandService,
 };
@@ -24,7 +24,7 @@ pub async fn command_route_handler(
     payload: ApiInput,
 ) -> impl IntoResponse {
     let mut command_str = String::new();
-    let mut arguements: Vec<Arguement> = Vec::new();
+    let mut arguements: Vec<Argument> = Vec::new();
 
     let path_segments_present = if let Some(path) = path_segments {
         let path_vaues: Vec<String> = path
@@ -37,7 +37,7 @@ pub async fn command_route_handler(
             command_str = path_vaues[0].to_string();
 
             if path_vaues.len() > 1 {
-                arguements.extend(path_vaues.iter().skip(1).map(|s| Arguement::from(s)));
+                arguements.extend(path_vaues.iter().skip(1).map(|s| Argument::from(s)));
             }
         }
         true
@@ -48,7 +48,7 @@ pub async fn command_route_handler(
     match payload.0 {
         ApiInputValue::Single(command_value) => {
             if path_segments_present {
-                arguements.push(Arguement(command_value));
+                arguements.push(Argument(command_value));
             }
         }
         ApiInputValue::List(command_value_list) => {
@@ -61,12 +61,7 @@ pub async fn command_route_handler(
                         .to_string()
                         .trim_matches('\"')
                         .to_string();
-                    arguements.extend(
-                        command_value_list
-                            .iter()
-                            .skip(1)
-                            .map(|s| Arguement::from(s)),
-                    );
+                    arguements.extend(command_value_list.iter().skip(1).map(|s| Argument::from(s)));
                 }
             }
         }
@@ -83,7 +78,7 @@ pub async fn command_route_handler(
 
     for (key, value) in params.iter() {
         if !key.starts_with("_") {
-            arguements.extend(vec![Arguement::from(key), Arguement::from(value)]);
+            arguements.extend(vec![Argument::from(key), Argument::from(value)]);
         }
     }
 
