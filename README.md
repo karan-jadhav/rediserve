@@ -47,7 +47,7 @@ Todo
 
 ## Contributing
 
-We welcome contributions from the community. To contribute
+We welcome contributions from the community. Before contributing, please read our [branch naming conventions](BRANCH_NAMING_CONVENTIONS.md) to ensure a smooth workflow for feature development, bug fixes, and releases. To contribute
 
 1. Fork the Project
 2. Create your Feature Branch (git checkout -b feature/YourFeature)
