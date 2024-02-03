@@ -82,11 +82,14 @@ pub async fn command_route_handler(
         }
     }
 
-    let command = Command(command_str);
+    let command = Command {
+        name: command_str,
+        args: arguements,
+    };
 
     let con = app_state.redis_pool.get().await.unwrap();
 
-    let result = CommandService::process_command(command, arguements, con).await;
+    let result = CommandService::process_command(command, con).await;
 
     return Json(ApiResponse::from(result));
 }
