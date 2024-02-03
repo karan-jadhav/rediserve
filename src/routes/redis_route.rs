@@ -1,6 +1,6 @@
 use crate::{
     models::{
-        incoming_data::{ApiInput, ApiInputValue},
+        api_input_data::{ApiInput, ApiInputValue},
         ApiError, Argument, Command,
     },
     services::CommandService,
