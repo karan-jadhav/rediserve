@@ -1,12 +1,11 @@
-use axum::{routing::post, Json};
 use std::sync::Arc;
 
-use axum::{Extension, Router};
+use axum::{routing::post, Extension, Json, Router};
 
 use crate::{
     models::{
-        api_response::PipelineApiResponse,
-        api_types::{PipelineJsonResponse, RedisResponse},
+        api_response::TransactionApiResponse,
+        api_types::{RedisResponse, TransactionJsonResponse},
         multi_api_input_data::MultiApiInput,
         Argument, Command,
     },
@@ -14,12 +13,10 @@ use crate::{
     state::AppState,
 };
 
-pub async fn pipeline_route_handler(
+pub async fn transaction_route_handler(
     Extension(app_state): Extension<Arc<AppState>>,
     payload: MultiApiInput,
-) -> PipelineJsonResponse {
-    // loop through the payload and process the data
-
+) -> TransactionJsonResponse {
     let mut command_list: Vec<Command> = vec![];
 
     for data in payload.0 {
@@ -44,13 +41,15 @@ pub async fn pipeline_route_handler(
         }
     }
 
-    let result: Vec<RedisResponse> =
-        CommandService::process_pipeline(command_list, app_state.redis_pool.clone()).await;
+    let con = app_state.redis_pool.get().await.unwrap();
 
-    let response = PipelineApiResponse::from(result);
+    let result: RedisResponse = CommandService::process_transaction(command_list, con).await;
+
+    let response = TransactionApiResponse::from(result);
 
     return Json(response);
 }
-pub fn pipeline_routes() -> Router {
-    Router::new().route("/pipeline", post(pipeline_route_handler))
+
+pub fn transaction_routes() -> Router {
+    Router::new().route("/multi-exec", post(transaction_route_handler))
 }
