@@ -8,7 +8,9 @@ use super::{
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ApiResponse {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<JsonValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
 
