@@ -79,35 +79,71 @@ impl From<Vec<RedisResponse>> for PipelineApiResponse {
     }
 }
 
-// impl From<Vec<RedisResponse>> for ApiResponse {
-//     fn from(results: Vec<RedisResponse>) -> Self {
-//         let mut result = vec![];
-//         let mut error = vec![];
+#[derive(Serialize, Debug)]
+pub enum TransactionApiResponseType {
+    TransactionResponse(Vec<ApiResponse>),
+    TransactionError(ApiResponse),
+}
 
-//         for res in results {
-//             match res {
-//                 Ok(redis_value) => result.push(redis_value_to_json(redis_value)),
-//                 Err(err) => {
-//                     error.push(match err {
-//                         ApiError::RedisError(redis_error) => {
-//                             format!("ERR {}", redis_error.detail().unwrap())
-//                         }
-//                         _ => err.to_string(),
-//                     });
-//                 }
-//             }
-//         }
+#[derive(Debug)]
+pub struct TransactionApiResponse(pub TransactionApiResponseType);
 
-//         if error.is_empty() {
-//             ApiResponse {
-//                 result: Some(JsonValue::Array(result)),
-//                 error: None,
-//             }
-//         } else {
-//             ApiResponse {
-//                 result: Some(JsonValue::Array(result)),
-//                 error: Some(error.join("\n")),
-//             }
-//         }
-//     }
-// }
+impl Serialize for TransactionApiResponse {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match &self.0 {
+            TransactionApiResponseType::TransactionResponse(response_list) => {
+                response_list.serialize(serializer)
+            }
+            TransactionApiResponseType::TransactionError(response) => {
+                response.serialize(serializer)
+            }
+        }
+    }
+}
+
+impl From<RedisResponse> for TransactionApiResponse {
+    fn from(result: RedisResponse) -> Self {
+        match result {
+            Ok(redis_value) => {
+                let mut response_list = vec![];
+                match redis_value {
+                    RedisValue::Bulk(items) => {
+                        for item in items {
+                            response_list.push(ApiResponse {
+                                result: Some(redis_value_to_json(item)),
+                                error: None,
+                            });
+                        }
+                    }
+                    _ => {
+                        response_list.push(ApiResponse {
+                            result: Some(redis_value_to_json(redis_value)),
+                            error: None,
+                        });
+                    }
+                }
+
+                return TransactionApiResponse(TransactionApiResponseType::TransactionResponse(
+                    response_list,
+                ));
+            }
+            Err(err) => {
+                return TransactionApiResponse(TransactionApiResponseType::TransactionError(
+                    match err {
+                        ApiError::RedisError(redis_error) => ApiResponse {
+                            result: None,
+                            error: Some(format!("ERR {}", redis_error.detail().unwrap())),
+                        },
+                        _ => ApiResponse {
+                            result: None,
+                            error: Some(err.to_string()),
+                        },
+                    },
+                ))
+            }
+        }
+    }
+}

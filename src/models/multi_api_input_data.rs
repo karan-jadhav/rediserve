@@ -12,10 +12,10 @@ use serde::Deserialize;
 use super::api_types::JsonValue;
 
 #[derive(Deserialize, Debug)]
-pub struct PipelineApiInput(pub Vec<Vec<JsonValue>>);
+pub struct MultiApiInput(pub Vec<Vec<JsonValue>>);
 
 #[async_trait]
-impl<S> FromRequest<S> for PipelineApiInput
+impl<S> FromRequest<S> for MultiApiInput
 where
     Bytes: FromRequest<S>,
     S: Send + Sync,
@@ -51,7 +51,7 @@ where
                                 .body(Body::from(format!("invalid json: {}", e)))
                                 .unwrap()
                         })
-                        .map(|s| PipelineApiInput(s))?;
+                        .map(|s| MultiApiInput(s))?;
 
                     return Ok(deserialized);
                 } else {

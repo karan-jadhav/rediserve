@@ -1,10 +1,10 @@
 use axum::{extract::Extension, routing::get};
 use axum::{Json, Router};
-use futures::future::join_all;
-use rediserve::models::api_response::ApiResponse;
-use rediserve::models::api_types::{JsonResponse, RedisResponse};
+
+use rediserve::models::api_response::TransactionApiResponse;
+use rediserve::models::api_types::{RedisResponse, TransactionJsonResponse};
 use rediserve::models::{Argument, Command};
-use rediserve::routes::{pipeline_routes, redis_routes};
+use rediserve::routes::{pipeline_routes, redis_routes, transaction_routes};
 
 use rediserve::services::CommandService;
 use rediserve::{config::AppConfig, state::AppState};
@@ -28,6 +28,7 @@ async fn main() {
         .route("/redis", get(set_redis_key))
         .merge(redis_routes())
         .merge(pipeline_routes())
+        .merge(transaction_routes())
         .layer(Extension(app_state))
         .layer(
             TraceLayer::new_for_http()
@@ -44,7 +45,7 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn set_redis_key(Extension(app_state): Extension<Arc<AppState>>) -> JsonResponse {
+async fn set_redis_key(Extension(app_state): Extension<Arc<AppState>>) -> TransactionJsonResponse {
     let command_str = "set";
     let argument1 = Argument::from(&"koo".to_owned());
     let argument2 = Argument::from(&"dar".to_owned());
@@ -55,6 +56,7 @@ async fn set_redis_key(Extension(app_state): Extension<Arc<AppState>>) -> JsonRe
 
     let command_str = "get";
     let argument1 = Argument::from(&"koo".to_owned());
+
     let command2 = Command {
         name: command_str.to_string(),
         args: vec![argument1],
@@ -62,21 +64,9 @@ async fn set_redis_key(Extension(app_state): Extension<Arc<AppState>>) -> JsonRe
 
     let command_list = vec![command1, command2];
 
-    // let mut con = app_state.redis_pool.get().await.unwrap();
+    let con = app_state.redis_pool.get().await.unwrap();
 
-    let futures: Vec<_> = command_list
-        .into_iter()
-        .map(|command| {
-            let pool = app_state.redis_pool.clone();
-            async move {
-                let con = pool.get().await.unwrap();
-                let result = CommandService::process_command(command, con).await;
-                return result;
-            }
-        })
-        .collect();
+    let result: RedisResponse = CommandService::process_transaction(command_list, con).await;
 
-    let results: Vec<RedisResponse> = join_all(futures).await;
-
-    return Json(ApiResponse::from("result"));
+    return Json(TransactionApiResponse::from(result));
 }

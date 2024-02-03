@@ -44,4 +44,24 @@ impl CommandService {
 
         return results;
     }
+
+    pub async fn process_transaction(commands: Vec<Command>, mut con: Connection) -> RedisResponse {
+        let mut transaction_pipeline = redis::pipe();
+        // make the transaction atomic for transactional integrity
+        transaction_pipeline.atomic();
+
+        for command in commands {
+            transaction_pipeline.cmd(command.name.as_ref());
+            for arg in command.args {
+                transaction_pipeline.arg(arg);
+            }
+        }
+
+        let result: RedisResponse = transaction_pipeline
+            .query_async(&mut con)
+            .await
+            .map_err(ApiError::RedisError);
+
+        return result;
+    }
 }
