@@ -78,7 +78,5 @@ async fn set_redis_key(Extension(app_state): Extension<Arc<AppState>>) -> JsonRe
 
     let results: Vec<RedisResponse> = join_all(futures).await;
 
-    println!("{:?}", results);
-
     return Json(ApiResponse::from("result"));
 }

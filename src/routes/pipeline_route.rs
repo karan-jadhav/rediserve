@@ -47,8 +47,6 @@ pub async fn pipeline_route_handler(
     let result: Vec<RedisResponse> =
         CommandService::process_pipeline(command_list, app_state.redis_pool.clone()).await;
 
-    println!("{:?}", result);
-
     let response = PipelineApiResponse::from(result);
 
     return Json(response);
