@@ -1,4 +1,4 @@
 // Exports your middleware
 pub mod logging;
 
-// pub use logging::logging_middleware;
+pub use logging::get_trace_layer;
