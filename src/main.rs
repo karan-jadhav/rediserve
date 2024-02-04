@@ -1,25 +1,15 @@
-use rediserve::routes::app_routes;
-use rediserve::{config::AppConfig, state::AppState};
-use std::sync::Arc;
+use clap::{CommandFactory, Parser};
+use rediserve::cmd::Args;
+use rediserve::web::start_server;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .with_target(false)
-        .compact()
-        .init();
+    let args = Args::parse();
 
-    let config = AppConfig::new();
-
-    let app_state = Arc::new(AppState::new(config.redis_url));
-
-    let app = app_routes(app_state);
-
-    let addr = format!("0.0.0.0:{}", config.server_port);
-
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-
-    println!("Server running on http://{}", addr);
-
-    axum::serve(listener, app).await.unwrap();
+    if args.start {
+        start_server().await;
+    } else {
+        Args::command().print_help().unwrap();
+        std::process::exit(1);
+    }
 }
