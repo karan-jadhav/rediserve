@@ -21,7 +21,13 @@ impl AppConfig {
             .parse::<u16>()
             .expect("SERVER_PORT must be a number");
 
-        let redis_url = env::var("REDIS_URL").expect("REDIS_URL must be set");
+        let redis_url = match env::var("REDIS_URL") {
+            Ok(url) => url,
+            Err(_) => {
+                eprintln!("REDIS_URL not found, please set it in .env file");
+                std::process::exit(1);
+            }
+        };
 
         AppConfig {
             server_port,
