@@ -42,6 +42,7 @@ Todo
 - [x] Pipelining API
 - [x] Authentication API
 - [ ] Support for Redis Cluster
+- [ ] Configure API testing with GitHub Actions
 
 
 ## Contributing
