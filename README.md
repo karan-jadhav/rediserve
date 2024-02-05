@@ -37,12 +37,11 @@ Todo
 
 ## API Endpoint Status
 
-- [x] <s>Basic Redis commands API</s>
-- [ ] Transactions API
-- [ ] Pipelining API
-- [ ] Authentication API
+- [x] Basic Redis commands API
+- [x] Transactions API
+- [x] Pipelining API
+- [x] Authentication API
 - [ ] Support for Redis Cluster
-- [ ] TOML configuration file support
 
 
 ## Contributing
