@@ -10,7 +10,7 @@ pub async fn start_server() {
 
     let config = AppConfig::new();
 
-    let app_state = Arc::new(AppState::new(config.redis_url));
+    let app_state = Arc::new(AppState::new(&config));
 
     let app = app_routes(app_state);
 
