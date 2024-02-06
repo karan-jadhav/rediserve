@@ -22,3 +22,35 @@ pub async fn start_server() {
 
     axum::serve(listener, app).await.unwrap();
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use tower::ServiceExt;
+
+    use crate::{config::AppConfig, routes::app_routes, state::AppState};
+
+    #[tokio::test]
+    async fn test_app_routes() {
+        let app_state = Arc::new(AppState::new(&AppConfig::new()));
+
+        let app = app_routes(app_state);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/set/foo/bar")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+}
