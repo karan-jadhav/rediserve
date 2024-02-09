@@ -1,13 +1,11 @@
 use std::sync::Arc;
 
-use axum::{routing::post, Extension, Json, Router};
+use axum::{response::IntoResponse, routing::post, Extension, Json, Router};
 
 use crate::{
     models::{
-        api_response::TransactionApiResponse,
-        api_types::{RedisResponse, TransactionJsonResponse},
-        multi_api_input_data::MultiApiInput,
-        Argument, Command,
+        api_input_data::ExtractEncoding, api_types::RedisResponse,
+        multi_api_input_data::MultiApiInput, response_builder::ResponseBuilder, Argument, Command,
     },
     services::CommandService,
     state::AppState,
@@ -15,8 +13,9 @@ use crate::{
 
 pub async fn transaction_route_handler(
     Extension(app_state): Extension<Arc<AppState>>,
+    encoding: ExtractEncoding,
     payload: MultiApiInput,
-) -> TransactionJsonResponse {
+) -> impl IntoResponse {
     let mut command_list: Vec<Command> = vec![];
 
     for data in payload.0 {
@@ -45,7 +44,7 @@ pub async fn transaction_route_handler(
 
     let result: RedisResponse = CommandService::process_transaction(command_list, con).await;
 
-    let response = TransactionApiResponse::from(result);
+    let response = ResponseBuilder::new(encoding.into_inner()).build_transaction(result);
 
     return Json(response);
 }

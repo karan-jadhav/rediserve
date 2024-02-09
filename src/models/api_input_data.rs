@@ -1,9 +1,8 @@
 use axum::{
     async_trait,
     body::{Body, Bytes},
-    extract::{FromRequest, Request},
-    http::header::HeaderName,
-    http::HeaderValue,
+    extract::{FromRequest, FromRequestParts, Request},
+    http::{header::HeaderName, request::Parts, HeaderValue},
     response::Response,
 };
 
@@ -75,6 +74,60 @@ where
                         .map(|s| ApiInput(ApiInputValue::Single(JsonValue::String(s))))?;
 
                     return Ok(deserialized);
+                }
+            }
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ExtractEncoding(String);
+
+impl ExtractEncoding {
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for ExtractEncoding
+where
+    S: Send + Sync,
+{
+    type Rejection = Response;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        // check of Upstash-Encoding or Rediserve-Encoding header else return utf-8
+        let encoding = parts
+            .headers
+            .get(HeaderName::from_static("upstash-encoding"))
+            .or_else(|| {
+                parts
+                    .headers
+                    .get(HeaderName::from_static("rediserve-encoding"))
+            });
+        println!("encoding {:?}", encoding);
+
+        match encoding {
+            None => Ok(ExtractEncoding("utf-8".to_string())),
+            Some(encoding) => {
+                let encoding = encoding.to_str().map_err(|_| {
+                    Response::builder()
+                        .status(400)
+                        .body(Body::from("invalid encoding"))
+                        .unwrap()
+                })?;
+
+                // match for base64
+                if encoding == "base64" {
+                    return Ok(ExtractEncoding("base64".to_string()));
+                } else {
+                    return Result::Err(
+                        Response::builder()
+                            .status(400)
+                            .body(Body::from("invalid encoding"))
+                            .unwrap(),
+                    );
                 }
             }
         }

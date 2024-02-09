@@ -1,14 +1,12 @@
-use axum::{routing::post, Json};
+use axum::{response::IntoResponse, routing::post, Json};
 use std::sync::Arc;
 
 use axum::{Extension, Router};
 
 use crate::{
     models::{
-        api_response::PipelineApiResponse,
-        api_types::{PipelineJsonResponse, RedisResponse},
-        multi_api_input_data::MultiApiInput,
-        Argument, Command,
+        api_input_data::ExtractEncoding, api_types::RedisResponse,
+        multi_api_input_data::MultiApiInput, response_builder::ResponseBuilder, Argument, Command,
     },
     services::CommandService,
     state::AppState,
@@ -16,8 +14,9 @@ use crate::{
 
 pub async fn pipeline_route_handler(
     Extension(app_state): Extension<Arc<AppState>>,
+    encoding: ExtractEncoding,
     payload: MultiApiInput,
-) -> PipelineJsonResponse {
+) -> impl IntoResponse {
     // loop through the payload and process the data
 
     let mut command_list: Vec<Command> = vec![];
@@ -47,7 +46,7 @@ pub async fn pipeline_route_handler(
     let result: Vec<RedisResponse> =
         CommandService::process_pipeline(command_list, app_state.redis_pool.clone()).await;
 
-    let response = PipelineApiResponse::from(result);
+    let response = ResponseBuilder::new(encoding.into_inner()).build_pipeline(result);
 
     return Json(response);
 }

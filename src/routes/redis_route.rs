@@ -1,6 +1,7 @@
 use crate::{
     models::{
-        api_input_data::{ApiInput, ApiInputValue},
+        api_input_data::{ApiInput, ApiInputValue, ExtractEncoding},
+        response_builder::ResponseBuilder,
         ApiError, Argument, Command,
     },
     services::CommandService,
@@ -15,14 +16,16 @@ use axum::{
 
 use std::{collections::HashMap, sync::Arc};
 
-use crate::{models::api_response::ApiResponse, state::AppState};
+use crate::state::AppState;
 
 pub async fn command_route_handler(
     Extension(app_state): Extension<Arc<AppState>>,
+    encoding: ExtractEncoding,
     path_segments: Option<Path<String>>,
     params: Query<HashMap<String, String>>,
     payload: ApiInput,
 ) -> impl IntoResponse {
+    println!("encoding from command_route_handler {:?}", encoding);
     let mut command_str = String::new();
     let mut arguements: Vec<Argument> = Vec::new();
 
@@ -54,7 +57,7 @@ pub async fn command_route_handler(
         ApiInputValue::List(command_value_list) => {
             if !path_segments_present {
                 if command_value_list.is_empty() {
-                    return Json(ApiResponse::from(Err(ApiError::NoCommand)));
+                    return Json(ResponseBuilder::error(ApiError::NoCommand));
                 } else {
                     // remove new line character
                     command_str = command_value_list[0]
@@ -67,13 +70,15 @@ pub async fn command_route_handler(
         }
         ApiInputValue::None => {
             if !path_segments_present {
-                return Json(ApiResponse::from(Err(ApiError::NoCommand)));
+                // return Json(ApiResponse::from(Err(ApiError::NoCommand)));
+                return Json(ResponseBuilder::error(ApiError::NoCommand));
             }
         }
     }
 
     if command_str.is_empty() {
-        return Json(ApiResponse::from(Err(ApiError::NoCommand)));
+        // return Json(ApiResponse::from(Err(ApiError::NoCommand)));
+        return Json(ResponseBuilder::error(ApiError::NoCommand));
     }
 
     for (key, value) in params.iter() {
@@ -91,7 +96,9 @@ pub async fn command_route_handler(
 
     let result = CommandService::process_command(command, con).await;
 
-    return Json(ApiResponse::from(result));
+    let response = ResponseBuilder::new(encoding.into_inner()).build(result);
+
+    return response.into();
 }
 
 pub fn redis_routes() -> Router {
