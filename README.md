@@ -37,10 +37,9 @@ Todo
 
 ## API Endpoint Status
 
-- [x] Basic Redis commands API
-- [x] Transactions API
-- [x] Pipelining API
+- [x] REST API's for Redis operations
 - [x] Authentication API
+- [x] Base64 encoding for response
 - [ ] Support for Redis Cluster
 - [ ] Configure API testing with GitHub Actions
 
