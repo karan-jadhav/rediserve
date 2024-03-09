@@ -27,7 +27,7 @@ cargo build
 3. Run the server
 
 ```bash
-cargo run
+cargo run -- -s
 ```
 
 
