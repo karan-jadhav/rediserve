@@ -1,7 +1,8 @@
 // src/config.rs
 
-use dotenv::dotenv;
 use std::env;
+
+use crate::cmd::Args;
 
 /// Application configuration
 #[derive(Debug, Clone)]
@@ -9,13 +10,15 @@ pub struct AppConfig {
     pub server_port: u16,
     pub redis_url: String,
     pub token: Option<String>,
+    pub env: String,
 }
 
 impl AppConfig {
     /// Load and return the application configuration.
-    pub fn new() -> Self {
+    pub fn new(args: Args) -> Self {
         // Load environment variables from .env file
-        dotenv().ok();
+
+        dotenv::from_filename(&args.env).ok();
 
         // Retrieve each configuration variable
         let server_port = env::var("SERVER_PORT")
@@ -40,10 +43,13 @@ impl AppConfig {
             }
         };
 
+        let env = args.env;
+
         AppConfig {
             server_port,
             redis_url,
             token,
+            env,
         }
     }
 }

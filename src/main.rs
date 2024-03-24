@@ -7,7 +7,7 @@ async fn main() {
     let args = Args::parse();
 
     if args.start {
-        start_server().await;
+        start_server(args).await;
     } else {
         Args::command().print_help().unwrap();
         std::process::exit(1);

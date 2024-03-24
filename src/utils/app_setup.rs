@@ -3,13 +3,14 @@ use std::sync::Arc;
 use axum::{middleware, Extension, Router};
 
 use crate::{
+    cmd::Args,
     config::AppConfig,
     middleware::{check_auth, get_trace_layer},
     state::AppState,
 };
 
-pub fn app_setup() -> (AppConfig, Arc<AppState>) {
-    let config = AppConfig::new();
+pub fn app_setup(args: Args) -> (AppConfig, Arc<AppState>) {
+    let config = AppConfig::new(args);
     let app_state = Arc::new(AppState::new(&config));
     (config, app_state)
 }

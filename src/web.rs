@@ -1,15 +1,16 @@
 use crate::{
+    cmd::Args,
     routes::app_routes,
     utils::app_setup::{add_layers, app_setup},
 };
 
-pub async fn start_server() {
+pub async fn start_server(args: Args) {
     tracing_subscriber::fmt()
         .with_target(false)
         .compact()
         .init();
 
-    let (config, app_state) = app_setup();
+    let (config, app_state) = app_setup(args);
 
     let routes = app_routes();
 

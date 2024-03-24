@@ -17,14 +17,18 @@ pub fn app_routes() -> Router {
 mod tests {
     use axum::http::{header, HeaderValue, StatusCode};
     use axum_test::TestServer;
+    use clap::Parser;
 
     use super::app_routes;
+    use crate::cmd::Args;
     use crate::utils::add_layers;
     use crate::utils::app_setup::app_setup;
 
     #[tokio::test]
     async fn test_unauthorization() {
-        let (_, app_state) = app_setup();
+        let args = Args::parse();
+
+        let (_, app_state) = app_setup(args);
 
         let routes = app_routes();
 
@@ -45,7 +49,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_query_authorization() {
-        let (config, app_state) = app_setup();
+        let args = Args::parse();
+
+        let (config, app_state) = app_setup(args);
 
         let routes = app_routes();
 
@@ -69,7 +75,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_header_authorization() {
-        let (config, app_state) = app_setup();
+        let args = Args::parse();
+
+        let (config, app_state) = app_setup(args);
 
         let routes = app_routes();
 

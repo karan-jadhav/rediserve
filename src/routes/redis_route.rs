@@ -112,15 +112,19 @@ mod tests {
 
     use axum::http::StatusCode;
     use axum_test::TestServer;
+    use clap::Parser;
 
     use super::redis_routes;
+    use crate::cmd::Args;
     use crate::utils::add_layers;
     use crate::utils::app_setup::app_setup;
     use rand::Rng;
 
     #[tokio::test]
     async fn test_path_command() {
-        let (config, app_state) = app_setup();
+        let args = Args::parse();
+
+        let (config, app_state) = app_setup(args);
 
         let routes = redis_routes();
 
@@ -170,7 +174,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_post_command() {
-        let (config, app_state) = app_setup();
+        let args = Args::parse();
+
+        let (config, app_state) = app_setup(args);
 
         let routes = redis_routes();
 
@@ -222,7 +228,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_post_command_with_path() {
-        let (config, app_state) = app_setup();
+        let args = Args::parse();
+
+        let (config, app_state) = app_setup(args);
 
         let routes = redis_routes();
 

@@ -59,15 +59,19 @@ mod tests {
 
     use axum::http::StatusCode;
     use axum_test::TestServer;
+    use clap::Parser;
 
     use super::pipeline_routes;
+    use crate::cmd::Args;
     use crate::utils::add_layers;
     use crate::utils::app_setup::app_setup;
     use rand::Rng;
 
     #[tokio::test]
     async fn test_pipeline_route() {
-        let (config, app_state) = app_setup();
+        let args = Args::parse();
+
+        let (config, app_state) = app_setup(args);
 
         let routes = pipeline_routes();
 
