@@ -1,0 +1,84 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: x86_64
+            target: x86_64-unknown-linux-gnu
+          - os: linux
+            arch: arm64
+            target: aarch64-unknown-linux-gnu
+          - os: linuxstatic
+            arch: x86_64
+            target: x86_64-unknown-linux-musl
+          - os: linuxstatic
+            arch: arm64
+            target: aarch64-unknown-linux-musl
+          - os: macos
+            arch: x86_64
+            target: x86_64-apple-darwin
+          - os: macos
+            arch: arm64
+            target: aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+      - name: Install cross
+        run: cargo install cross
+      - name: Build binary with cross
+        run: cross build --target ${{ matrix.target }} --release
+        env:
+          CARGO_BUILD_TARGET: ${{ matrix.target }}
+      - name: Rename and move binaries
+        run: |
+          mv target/${{ matrix.target }}/release/rediserve ${{ runner.temp }}/rediserve-${{ matrix.os }}-${{ matrix.arch }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: rediserve-${{ matrix.os }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/rediserve-${{ matrix.os }}-${{ matrix.arch }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          body: |
+            Release binaries for various architectures.
+      - name: Upload binaries to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/rediserve-${{ matrix.os }}-${{ matrix.arch }}
+          asset_name: rediserve-${{ matrix.os }}-${{ matrix.arch }}
+          asset_content_type: application/octet-stream
