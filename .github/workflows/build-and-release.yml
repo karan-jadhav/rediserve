@@ -6,30 +6,20 @@ on:
       - "v*"
 
 jobs:
-  build:
-    name: Build ${{ matrix.os }} ${{ matrix.arch }}
+  build-linux:
+    name: Build Linux ${{ matrix.arch }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - os: linux
-            arch: x86_64
+          - arch: x86_64
             target: x86_64-unknown-linux-gnu
-          - os: linux
-            arch: arm64
+          - arch: arm64
             target: aarch64-unknown-linux-gnu
-          - os: linuxstatic
-            arch: x86_64
+          - arch: x86_64
             target: x86_64-unknown-linux-musl
-          - os: linuxstatic
-            arch: arm64
+          - arch: arm64
             target: aarch64-unknown-linux-musl
-          - os: macos
-            arch: x86_64
-            target: x86_64-apple-darwin
-          - os: macos
-            arch: arm64
-            target: aarch64-apple-darwin
     steps:
       - uses: actions/checkout@v2
       - name: Install Rust toolchain
@@ -46,14 +36,42 @@ jobs:
           CARGO_BUILD_TARGET: ${{ matrix.target }}
       - name: Rename and move binaries
         run: |
-          mv target/${{ matrix.target }}/release/rediserve ${{ runner.temp }}/rediserve-${{ matrix.os }}-${{ matrix.arch }}
+          mv target/${{ matrix.target }}/release/rediserve ${{ runner.temp }}/rediserve-linux-${{ matrix.arch }}
       - uses: actions/upload-artifact@v2
         with:
-          name: rediserve-${{ matrix.os }}-${{ matrix.arch }}
-          path: ${{ runner.temp }}/rediserve-${{ matrix.os }}-${{ matrix.arch }}
+          name: rediserve-linux-${{ matrix.arch }}
+          path: ${{ runner.temp }}/rediserve-linux-${{ matrix.arch }}
+
+  build-macos:
+    name: Build macOS ${{ matrix.arch }}
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            target: x86_64-apple-darwin
+          - arch: arm64
+            target: aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+      - name: Build binary
+        run: cargo build --target ${{ matrix.target }} --release
+      - name: Rename and move binaries
+        run: |
+          mv target/${{ matrix.target }}/release/rediserve ${{ runner.temp }}/rediserve-macos-${{ matrix.arch }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: rediserve-macos-${{ matrix.arch }}
+          path: ${{ runner.temp }}/rediserve-macos-${{ matrix.arch }}
 
   release:
-    needs: build
+    needs: [build-linux, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -79,6 +97,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/rediserve-${{ matrix.os }}-${{ matrix.arch }}
+          asset_path: ./artifacts/
           asset_name: rediserve-${{ matrix.os }}-${{ matrix.arch }}
           asset_content_type: application/octet-stream
