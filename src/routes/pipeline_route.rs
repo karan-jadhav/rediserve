@@ -53,3 +53,54 @@ pub async fn pipeline_route_handler(
 pub fn pipeline_routes() -> Router {
     Router::new().route("/pipeline", post(pipeline_route_handler))
 }
+
+#[cfg(test)]
+mod tests {
+
+    use axum::http::StatusCode;
+    use axum_test::TestServer;
+
+    use super::pipeline_routes;
+    use crate::utils::add_layers;
+    use crate::utils::app_setup::app_setup;
+    use rand::Rng;
+
+    #[tokio::test]
+    async fn test_pipeline_route() {
+        let (config, app_state) = app_setup();
+
+        let routes = pipeline_routes();
+
+        let app = add_layers(routes, app_state);
+
+        let token = config.token.unwrap();
+
+        let server = match TestServer::new(app) {
+            Ok(server) => server,
+            Err(e) => panic!("Error setting up test server: {}", e),
+        };
+
+        let random_key: String = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(30)
+            .map(char::from)
+            .collect();
+
+        let random_value: String = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(30)
+            .map(char::from)
+            .collect();
+
+        let response = server
+            .post("/pipeline")
+            .json(&serde_json::json!([
+                ["SET", random_key, random_value],
+                ["GET", random_key]
+            ]))
+            .add_query_param("_token", &token)
+            .await;
+
+        response.assert_status(StatusCode::OK);
+    }
+}

@@ -34,7 +34,6 @@ pub async fn check_auth(
         }
     }
 
-    // If Authorization header is not present or invalid, check for _token query parameter
     let query_params = req.uri().query().unwrap_or("");
     let query_token = url::form_urlencoded::parse(query_params.as_bytes())
         .find(|(key, _)| key == "_token")
@@ -44,11 +43,11 @@ pub async fn check_auth(
         return Ok(next.run(req).await);
     }
 
-    // Err(StatusCode::UNAUTHORIZED)
-    // return response {"error": "Unauthorized access"} with status code 401
     return Ok(Response::builder()
         .status(StatusCode::UNAUTHORIZED)
         .header(header::CONTENT_TYPE, "application/json")
-        .body(Body::from(r#"{"error": "Unauthorized access"}"#))
+        .body(Body::from(
+            serde_json::json!({"error": "Unauthorized access"}).to_string(),
+        ))
         .unwrap());
 }

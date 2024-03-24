@@ -1,6 +1,7 @@
-use std::sync::Arc;
-
-use crate::{config::AppConfig, routes::app_routes, state::AppState};
+use crate::{
+    routes::app_routes,
+    utils::app_setup::{add_layers, app_setup},
+};
 
 pub async fn start_server() {
     tracing_subscriber::fmt()
@@ -8,11 +9,11 @@ pub async fn start_server() {
         .compact()
         .init();
 
-    let config = AppConfig::new();
+    let (config, app_state) = app_setup();
 
-    let app_state = Arc::new(AppState::new(&config));
+    let routes = app_routes();
 
-    let app = app_routes(app_state);
+    let app = add_layers(routes, app_state);
 
     let addr = format!("0.0.0.0:{}", config.server_port);
 

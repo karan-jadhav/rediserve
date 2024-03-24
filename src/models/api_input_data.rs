@@ -106,7 +106,6 @@ where
                     .headers
                     .get(HeaderName::from_static("rediserve-encoding"))
             });
-        println!("encoding {:?}", encoding);
 
         match encoding {
             None => Ok(ExtractEncoding("utf-8".to_string())),
